@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Prerequisite
+# 1. must have jq (brew install jq)
+# 2. better have watch to continually sh the file (brew install watch)
+#
+# Usages
+# 1. sh price.sh CRYPTO...                        ex: sh price.sh BTC ETH SOL
+#    or
+# 2. watch -n SECONDS -t -c sh price.sh CRYPTO... ex: watch -n 3 -t -c sh price.sh BTC ETH SOL
+
 myCryptoArray=("$@") 
 
 if [ ${#myCryptoArray[@]} -eq 0 ]; then
