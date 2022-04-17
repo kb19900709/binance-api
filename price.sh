@@ -27,9 +27,12 @@ pairBase="USDT"
 precision=3
 fireVolume=100000000
 diffAlertPercent=0.35
+closeToHighOrLowPercent=0.5
 
 pairColor=$cyan
 volumeFlag=
+highFlag=
+lowFlag=
 
 
 round() {
@@ -42,7 +45,7 @@ determinePairColor() {
   currentPrice=$(round $(echo $kline | jq .[1][4] | tr -d '"') 5)
   diff=$(round $(jq -n $currentPrice-$priceTwoMinsAgo) 5)
   diffAbs=$(echo ${diff#-})
-  diffPercent=$(round $(jq -n $diffAbs/$currentPrice * 100) 5)
+  diffPercent=$(round $(jq -n $diffAbs/$currentPrice*100) 5)
   diffPositive=$(echo "$diff > 0" | bc )
   diffNegative=$(echo "$diff < 0" | bc )
 
@@ -63,9 +66,33 @@ determineFireFlag() {
   fi
 }
 
+determineHighAndLowColor() {
+  high=$(round $(echo $1 | jq '.highPrice'| tr -d '"') 5)
+  low=$(round $(echo $1 | jq '.lowPrice'| tr -d '"') 5)
+  last=$(round $(echo $1 | jq '.lastPrice'| tr -d '"') 5)
+
+  highDiff=$(round $(jq -n $high-$last) 5)
+  highDiffPercent=$(round $(jq -n $highDiff/$high*100) 5)
+  isCloseToHigh=$(echo "$highDiffPercent <= $closeToHighOrLowPercent" | bc )
+
+  lowDiff=$(round $(jq -n $last-$low) 5)
+  lowDiffPercent=$(round $(jq -n $lowDiff/$low*100) 5)
+  isCloseToLow=$(echo "$lowDiffPercent <= $closeToHighOrLowPercent" | bc )
+
+  if [ $isCloseToHigh -eq 1 ]; then
+    highFlag=$red
+  fi
+  
+  if [ $isCloseToLow -eq 1 ]; then
+    lowFlag=$green
+  fi
+}
+
 resetAlert() {
   pairColor=$cyan
   volumeFlag=
+  highFlag=
+  lowFlag=
 }
 
 echo 
@@ -80,8 +107,9 @@ for crypto in "${myCryptoArray[@]}"; do
 
     determineFireFlag $cryptoData
     determinePairColor $pair
+    determineHighAndLowColor $cryptoData
 
-    echo "${pairColor}${crypto}/${pairBase}${nc}${volumeFlag} "\\t" ${gray}${lastPrice} / ${priceChangePercent}% "\\t" high=$highPrice / low=$lowPrice ${nc}"
+    echo "${pairColor}${crypto}/${pairBase}${nc}${volumeFlag} "\\t" ${gray}${lastPrice} / ${priceChangePercent}%${nc} "\\t" ${highFlag}high=${highPrice}${nc} / ${lowFlag}low=${lowPrice}${nc}"
 
     resetAlert
 done
