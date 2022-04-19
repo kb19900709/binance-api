@@ -109,3 +109,4 @@ for crypto in "${myCryptoArray[@]}"; do
     echo "${cyan}${crypto}/${pairBase}${nc}${volumeFlag} "\\t" ${priceColor}${lastPrice} / ${priceChangePercent}%${nc} "\\t" ${highFlag}high=${highPrice}${nc} $gray/$nc ${lowFlag}low=${lowPrice}${nc}"
 done
 
+echo "\ndata generated: $(date +%Y-%m-%d,%T)"
